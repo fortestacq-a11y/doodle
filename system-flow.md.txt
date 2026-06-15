@@ -1,0 +1,567 @@
+# System Flow
+
+## How AI Executes Real Actions Through The Platform
+
+This document explains how a user request travels from an AI model to a real application such as Gmail, GitHub, Slack, Notion, Linear, Discord, or any future connector.
+
+---
+
+# Core Concept
+
+The AI never talks directly to Gmail, Slack, GitHub, or any external service.
+
+The AI only knows about tools.
+
+Example:
+
+```json
+{
+  "name": "gmail_send_email",
+  "description": "Send an email using Gmail"
+}
+```
+
+The platform is responsible for converting a tool call into a real API request.
+
+---
+
+# Example Scenario
+
+User has already connected Gmail to the platform.
+
+The user sends a prompt:
+
+```text
+Send an email to john@gmail.com
+
+Subject:
+Project Update
+
+Body:
+We shipped the MVP.
+```
+
+---
+
+# High-Level Flow
+
+```text
+User
+ ↓
+LLM
+ ↓
+Tool Call
+ ↓
+API Gateway
+ ↓
+Tool Registry
+ ↓
+Connection Service
+ ↓
+Execution Engine
+ ↓
+Connector Runtime
+ ↓
+Gmail API
+ ↓
+Result
+ ↓
+LLM
+ ↓
+User
+```
+
+---
+
+# Step 1 — User Prompt
+
+User sends:
+
+```text
+Send an email to john@gmail.com
+
+Subject:
+Project Update
+
+Body:
+We shipped the MVP.
+```
+
+---
+
+# Step 2 — Tool Discovery
+
+The AI model has access to available tools.
+
+Example:
+
+```json
+{
+  "name": "gmail_send_email",
+  "parameters": {
+    "to": "string",
+    "subject": "string",
+    "body": "string"
+  }
+}
+```
+
+These tools are exposed by the platform through MCP or SDK integrations.
+
+---
+
+# Step 3 — Tool Call Generation
+
+The AI decides a tool is required.
+
+Instead of sending the email itself, it generates:
+
+```json
+{
+  "tool": "gmail_send_email",
+  "arguments": {
+    "to": "john@gmail.com",
+    "subject": "Project Update",
+    "body": "We shipped the MVP."
+  }
+}
+```
+
+At this point no email has been sent.
+
+Only a tool call exists.
+
+---
+
+# Step 4 — API Gateway
+
+The tool call reaches the API Gateway.
+
+Example:
+
+```http
+POST /v1/tools/execute
+```
+
+Request:
+
+```json
+{
+  "workspaceId": "workspace_123",
+  "tool": "gmail_send_email",
+  "arguments": {
+    "to": "john@gmail.com",
+    "subject": "Project Update",
+    "body": "We shipped the MVP."
+  }
+}
+```
+
+Responsibilities:
+
+* Authentication
+* API key validation
+* Rate limiting
+* Request validation
+* Routing
+
+---
+
+# Step 5 — Tool Registry
+
+The Tool Registry receives the request.
+
+It looks up:
+
+```text
+gmail_send_email
+```
+
+and finds:
+
+```json
+{
+  "connector": "gmail",
+  "action": "send_email",
+  "version": "1.0.0"
+}
+```
+
+Responsibilities:
+
+* Tool discovery
+* Tool metadata
+* Tool versioning
+* Tool schemas
+
+The registry determines which connector should execute the request.
+
+---
+
+# Step 6 — Connection Service
+
+The platform verifies the workspace connection.
+
+Example:
+
+```text
+workspace_123
+```
+
+Checks:
+
+```text
+Does this workspace have Gmail connected?
+```
+
+If connected:
+
+Fetch from database:
+
+```text
+access_token
+refresh_token
+expires_at
+```
+
+If token is expired:
+
+```text
+Refresh token
+Store updated token
+Continue execution
+```
+
+Responsibilities:
+
+* OAuth token retrieval
+* Token refresh
+* Secret management
+* Connection validation
+
+---
+
+# Step 7 — Execution Engine
+
+The Execution Engine prepares the actual action.
+
+Input:
+
+```json
+{
+  "tool": "gmail_send_email",
+  "arguments": {}
+}
+```
+
+Plus:
+
+```text
+OAuth credentials
+Connector definition
+Tool metadata
+```
+
+Responsibilities:
+
+* Request building
+* Retry logic
+* Timeout handling
+* Rate limit handling
+* Logging
+* Error handling
+
+---
+
+# Step 8 — Connector Runtime
+
+The Connector Runtime contains provider-specific logic.
+
+Example:
+
+```typescript
+gmailConnector.sendEmail({
+  to,
+  subject,
+  body
+})
+```
+
+Responsibilities:
+
+* API translation
+* Provider-specific formatting
+* Response normalization
+
+Every connector follows the same interface.
+
+Examples:
+
+```text
+gmail
+github
+slack
+notion
+discord
+linear
+hubspot
+salesforce
+```
+
+---
+
+# Step 9 — External API
+
+The connector makes the real API request.
+
+Example:
+
+```http
+POST https://gmail.googleapis.com/...
+```
+
+Request includes:
+
+```text
+OAuth Token
+Recipient
+Subject
+Body
+```
+
+Google processes the request.
+
+The email is sent.
+
+Response:
+
+```json
+{
+  "messageId": "abc123"
+}
+```
+
+---
+
+# Step 10 — Response Normalization
+
+Execution Engine receives:
+
+```json
+{
+  "messageId": "abc123"
+}
+```
+
+Normalizes into platform format:
+
+```json
+{
+  "success": true,
+  "messageId": "abc123"
+}
+```
+
+This ensures every connector returns a predictable structure.
+
+---
+
+# Step 11 — Return Result To AI
+
+The normalized result is returned.
+
+Example:
+
+```json
+{
+  "success": true,
+  "messageId": "abc123"
+}
+```
+
+The model receives this response.
+
+---
+
+# Step 12 — AI Responds To User
+
+The AI generates:
+
+```text
+Email sent successfully.
+```
+
+---
+
+# Complete Flow Diagram
+
+```text
+User
+ │
+ ▼
+
+"Send email to John"
+
+ │
+ ▼
+
+LLM
+
+ │
+ ▼
+
+Tool Call
+
+{
+  tool: gmail_send_email
+}
+
+ │
+ ▼
+
+API Gateway
+
+ │
+ ▼
+
+Tool Registry
+
+ │
+ ▼
+
+Connection Service
+
+ │
+ ▼
+
+Execution Engine
+
+ │
+ ▼
+
+Connector Runtime
+
+ │
+ ▼
+
+Gmail API
+
+ │
+ ▼
+
+Email Sent
+
+ │
+ ▼
+
+Execution Engine
+
+ │
+ ▼
+
+LLM
+
+ │
+ ▼
+
+User Receives Confirmation
+```
+
+---
+
+# Platform Responsibility Breakdown
+
+## LLM
+
+Responsible For:
+
+* Understanding intent
+* Selecting tools
+* Generating tool arguments
+
+Not Responsible For:
+
+* OAuth
+* API requests
+* Token management
+
+---
+
+## Tool Registry
+
+Responsible For:
+
+* Tool definitions
+* Discovery
+* Versioning
+
+---
+
+## Connection Service
+
+Responsible For:
+
+* OAuth tokens
+* Refresh tokens
+* Connection validation
+
+---
+
+## Execution Engine
+
+Responsible For:
+
+* Executing tools
+* Retries
+* Logging
+* Error handling
+
+---
+
+## Connector Runtime
+
+Responsible For:
+
+* Provider-specific logic
+* API formatting
+* Response normalization
+
+---
+
+## External Providers
+
+Examples:
+
+* Gmail
+* GitHub
+* Slack
+* Notion
+* Discord
+* Linear
+* HubSpot
+* Salesforce
+
+Responsible For:
+
+* Performing actual actions
+
+---
+
+# Key Insight
+
+The AI never directly interacts with external applications.
+
+The AI only knows:
+
+```json
+{
+  "tool": "gmail_send_email"
+}
+```
+
+Everything between the tool call and the actual Gmail API request is the platform.
+
+The core value of the platform is the infrastructure that transforms an AI tool call into a secure, reliable, authenticated action inside a connected application.
+
+```
+```

@@ -1,0 +1,906 @@
+# Folder Structure
+
+## Product
+
+Nexus
+
+Universal AI Integration Platform
+
+---
+
+# Purpose
+
+This document defines the official monorepo structure for Nexus.
+
+All code must follow this structure.
+
+This document acts as the source of truth for:
+
+* Service boundaries
+* Package ownership
+* Connector organization
+* Runtime separation
+
+---
+
+# Monorepo Layout
+
+```text
+nexus/
+
+apps/
+packages/
+services/
+connectors/
+infrastructure/
+scripts/
+docs/
+
+package.json
+pnpm-workspace.yaml
+turbo.json
+```
+
+---
+
+# Root Structure
+
+```text
+nexus/
+
+├── apps/
+├── packages/
+├── services/
+├── connectors/
+├── infrastructure/
+├── scripts/
+├── docs/
+
+├── package.json
+├── turbo.json
+├── pnpm-workspace.yaml
+├── .env
+├── .env.example
+```
+
+---
+
+# apps/
+
+Purpose:
+
+User-facing applications.
+
+```text
+apps/
+
+dashboard/
+api/
+worker/
+```
+
+---
+
+# apps/dashboard
+
+Technology:
+
+```text
+Next.js
+```
+
+Responsibilities:
+
+```text
+Authentication
+
+Workspace Management
+
+Connector Management
+
+Tool Explorer
+
+Execution Logs
+
+Settings
+```
+
+Structure:
+
+```text
+apps/dashboard/
+
+src/
+
+app/
+
+components/
+
+hooks/
+
+lib/
+
+types/
+
+public/
+```
+
+---
+
+# apps/api
+
+Technology:
+
+```text
+Fastify
+```
+
+Responsibilities:
+
+```text
+REST APIs
+
+MCP APIs
+
+Authentication
+
+Execution APIs
+```
+
+Structure:
+
+```text
+apps/api/
+
+src/
+
+routes/
+
+controllers/
+
+middlewares/
+
+plugins/
+
+services/
+
+types/
+```
+
+---
+
+# apps/worker
+
+Technology:
+
+```text
+BullMQ Workers
+```
+
+Responsibilities:
+
+```text
+Background Jobs
+
+Retries
+
+Workflow Execution
+
+Scheduled Tasks
+```
+
+Structure:
+
+```text
+apps/worker/
+
+src/
+
+jobs/
+
+queues/
+
+workers/
+```
+
+---
+
+# packages/
+
+Purpose:
+
+Reusable libraries.
+
+```text
+packages/
+
+shared/
+database/
+connector-sdk/
+tool-registry/
+execution-engine/
+mcp-runtime/
+auth-sdk/
+logger/
+```
+
+---
+
+# packages/shared
+
+Contains:
+
+```text
+Types
+
+Constants
+
+Utilities
+
+Schemas
+```
+
+Structure:
+
+```text
+packages/shared/
+
+src/
+
+types/
+
+constants/
+
+utils/
+
+schemas/
+```
+
+---
+
+# packages/database
+
+Purpose:
+
+Prisma integration.
+
+Contains:
+
+```text
+Schema
+
+Migrations
+
+Database Client
+```
+
+Structure:
+
+```text
+packages/database/
+
+prisma/
+
+schema.prisma
+
+migrations/
+
+src/
+```
+
+---
+
+# packages/connector-sdk
+
+Purpose:
+
+Connector Framework.
+
+Contains:
+
+```text
+defineConnector()
+
+defineAction()
+
+Validation
+
+Connector Types
+```
+
+Structure:
+
+```text
+packages/connector-sdk/
+
+src/
+
+core/
+
+types/
+
+validation/
+```
+
+---
+
+# packages/tool-registry
+
+Purpose:
+
+Tool Discovery.
+
+Contains:
+
+```text
+Registration
+
+Versioning
+
+Lookup
+
+Metadata
+```
+
+Structure:
+
+```text
+packages/tool-registry/
+
+src/
+
+registry/
+
+services/
+
+types/
+```
+
+---
+
+# packages/execution-engine
+
+Purpose:
+
+Tool Execution.
+
+Contains:
+
+```text
+Validation
+
+Execution
+
+Retries
+
+Logging
+
+Normalization
+```
+
+Structure:
+
+```text
+packages/execution-engine/
+
+src/
+
+engine/
+
+executors/
+
+errors/
+
+types/
+```
+
+---
+
+# packages/mcp-runtime
+
+Purpose:
+
+MCP Server Logic.
+
+Contains:
+
+```text
+Tool Discovery
+
+Session Management
+
+Tool Routing
+```
+
+Structure:
+
+```text
+packages/mcp-runtime/
+
+src/
+
+server/
+
+sessions/
+
+handlers/
+
+types/
+```
+
+---
+
+# packages/auth-sdk
+
+Purpose:
+
+Authentication Utilities.
+
+Contains:
+
+```text
+JWT
+
+Permissions
+
+Workspace Access
+```
+
+---
+
+# packages/logger
+
+Purpose:
+
+Central Logging.
+
+Contains:
+
+```text
+Pino
+
+Tracing
+
+Telemetry
+```
+
+---
+
+# services/
+
+Purpose:
+
+Business Services.
+
+```text
+services/
+
+auth/
+connections/
+oauth/
+```
+
+---
+
+# services/auth
+
+Responsibilities:
+
+```text
+User Authentication
+
+Workspace Membership
+
+Permissions
+```
+
+Structure:
+
+```text
+services/auth/
+
+src/
+
+controllers/
+
+services/
+
+repositories/
+```
+
+---
+
+# services/connections
+
+Responsibilities:
+
+```text
+Connection Management
+
+Connector Status
+
+Validation
+```
+
+---
+
+# services/oauth
+
+Responsibilities:
+
+```text
+OAuth Flows
+
+Token Refresh
+
+Credential Storage
+```
+
+Structure:
+
+```text
+services/oauth/
+
+src/
+
+providers/
+
+google/
+
+github/
+
+slack/
+
+notion/
+```
+
+---
+
+# connectors/
+
+Purpose:
+
+All integrations live here.
+
+```text
+connectors/
+
+gmail/
+github/
+slack/
+notion/
+discord/
+linear/
+hubspot/
+salesforce/
+```
+
+---
+
+# Connector Structure
+
+Every connector must follow:
+
+```text
+connector/
+
+manifest.ts
+
+auth.ts
+
+actions/
+
+schemas/
+
+tests/
+```
+
+---
+
+# Gmail Example
+
+```text
+connectors/gmail/
+
+manifest.ts
+
+auth.ts
+
+actions/
+
+  send-email.ts
+
+  list-emails.ts
+
+schemas/
+
+tests/
+```
+
+---
+
+# GitHub Example
+
+```text
+connectors/github/
+
+manifest.ts
+
+auth.ts
+
+actions/
+
+  create-issue.ts
+
+  list-prs.ts
+
+schemas/
+
+tests/
+```
+
+---
+
+# infrastructure/
+
+Purpose:
+
+Deployment Resources.
+
+```text
+infrastructure/
+
+docker/
+
+terraform/
+
+kubernetes/
+```
+
+---
+
+# infrastructure/docker
+
+Contains:
+
+```text
+Dockerfiles
+
+Compose Files
+```
+
+---
+
+# infrastructure/terraform
+
+Future.
+
+Contains:
+
+```text
+Cloud Resources
+
+Networking
+
+Storage
+```
+
+---
+
+# scripts/
+
+Purpose:
+
+Developer Utilities.
+
+Contains:
+
+```text
+Seed Scripts
+
+Migration Scripts
+
+Connector Generators
+```
+
+---
+
+# Example
+
+Generate Connector:
+
+```bash
+pnpm generate:connector gmail
+```
+
+Produces:
+
+```text
+connectors/gmail/
+
+manifest.ts
+
+auth.ts
+
+actions/
+
+schemas/
+
+tests/
+```
+
+---
+
+# docs/
+
+Purpose:
+
+Project Blueprint.
+
+Contains:
+
+```text
+Vision
+
+Architecture
+
+Database
+
+Security
+
+Roadmap
+```
+
+---
+
+# Dependency Rules
+
+apps
+
+↓
+
+packages
+
+↓
+
+services
+
+↓
+
+connectors
+
+---
+
+Allowed:
+
+```text
+apps → packages
+
+apps → services
+
+services → packages
+
+connectors → connector-sdk
+```
+
+---
+
+Forbidden:
+
+```text
+connectors → database
+
+connectors → oauth storage
+
+connectors → other connectors
+
+mcp-runtime → connector internals
+```
+
+---
+
+# Ownership Rules
+
+Execution Engine owns:
+
+```text
+Tool Execution
+```
+
+---
+
+OAuth Service owns:
+
+```text
+Credentials
+```
+
+---
+
+Tool Registry owns:
+
+```text
+Tool Discovery
+```
+
+---
+
+Connectors own:
+
+```text
+Provider Logic
+```
+
+---
+
+# Future Additions
+
+```text
+packages/workflow-engine
+
+packages/agent-runtime
+
+packages/marketplace-sdk
+```
+
+Added later.
+
+---
+
+# Final Repository
+
+```text
+nexus/
+
+apps/
+  dashboard/
+  api/
+  worker/
+
+packages/
+  shared/
+  database/
+  connector-sdk/
+  tool-registry/
+  execution-engine/
+  mcp-runtime/
+  auth-sdk/
+  logger/
+
+services/
+  auth/
+  oauth/
+  connections/
+
+connectors/
+  gmail/
+  github/
+  slack/
+  notion/
+
+infrastructure/
+  docker/
+  terraform/
+
+scripts/
+
+docs/
+```
+
+---
+
+# Design Principle
+
+Every folder should have a single responsibility.
+
+Connectors execute provider logic.
+
+Execution Engine executes tools.
+
+OAuth manages credentials.
+
+Registry manages tools.
+
+MCP exposes tools.
+
+These boundaries must never be violated.
