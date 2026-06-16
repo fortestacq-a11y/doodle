@@ -3,10 +3,13 @@ import crypto from "crypto";
 import { handleCallback, getAuthorizationUrl } from "@nexus/oauth";
 
 export async function oauthRoutes(app: FastifyInstance) {
-  app.get<{ Querystring: { connector: string; workspace_id: string } }>("/authorize", async (request, reply) => {
-    const { connector, workspace_id } = request.query;
+  app.get<{ Querystring: { connector: string } }>("/authorize", async (request, reply) => {
+    const { connector } = request.query;
+    if (!connector || !/^[a-z]+$/.test(connector)) {
+      return reply.status(400).send({ error: { code: "INVALID_REQUEST", message: "Invalid connector name" } });
+    }
     const stateToken = crypto.randomBytes(32).toString("hex");
-    const state = JSON.stringify({ connector, workspaceId: workspace_id, stateToken });
+    const state = JSON.stringify({ connector, workspaceId: request.workspaceId, stateToken });
     const url = getAuthorizationUrl(connector, state);
     return reply.redirect(url);
   });
@@ -15,13 +18,15 @@ export async function oauthRoutes(app: FastifyInstance) {
     const { code, state: stateStr } = request.query;
     try {
       const state = JSON.parse(stateStr);
+      if (!state.connector || !state.workspaceId) {
+        throw new Error("Invalid OAuth state");
+      }
       await handleCallback(state.connector, code, state.workspaceId);
       const dashboardUrl = process.env.DASHBOARD_URL ?? "http://localhost:3000";
       return reply.redirect(`${dashboardUrl}/connections?connected=${state.connector}`);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "OAuth callback failed";
+    } catch {
       const dashboardUrl = process.env.DASHBOARD_URL ?? "http://localhost:3000";
-      return reply.redirect(`${dashboardUrl}/connections?error=${encodeURIComponent(message)}`);
+      return reply.redirect(`${dashboardUrl}/connections?error=connection_failed`);
     }
   });
 }

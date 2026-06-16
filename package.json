@@ -16,10 +16,12 @@
     "mcp": "pnpm --filter @nexus/api run mcp"
   },
   "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@vitest/coverage-v8": "^4.1.9",
+    "prettier": "^3.2.0",
     "turbo": "^2.0.0",
     "typescript": "^5.4.0",
-    "@types/node": "^20.0.0",
-    "prettier": "^3.2.0"
+    "vitest": "^4.1.9"
   },
   "engines": {
     "node": ">=20",

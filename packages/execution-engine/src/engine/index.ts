@@ -1,7 +1,7 @@
 import { getTool } from "@nexus/tool-registry";
 import { db } from "@nexus/database";
 import { createLogger } from "@nexus/logger";
-import { generateId, type ToolCallStatus } from "@nexus/shared";
+import { generateId, sleep, type ToolCallStatus } from "@nexus/shared";
 import {
   ExecutionError,
   ToolNotFoundError,
@@ -140,10 +140,6 @@ function isTransientError(err: unknown): boolean {
     return msg.includes("timeout") || msg.includes("econnreset") || msg.includes("econnrefused") || msg.includes("429") || msg.includes("503");
   }
   return false;
-}
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 export async function getExecution(executionId: string) {

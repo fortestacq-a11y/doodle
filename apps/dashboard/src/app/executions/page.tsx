@@ -19,13 +19,22 @@ const statusStyles: Record<string, string> = {
 
 export default function ExecutionsPage() {
   const [executions, setExecutions] = useState<Execution[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/executions")
-      .then((r) => r.json())
-      .then((data) => setExecutions(data.executions ?? []))
-      .catch(() => {});
+      .then((r) => {
+        if (!r.ok) throw new Error("Failed to load executions");
+        return r.json();
+      })
+      .then((data) => setExecutions(Array.isArray(data) ? data : []))
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
   }, []);
+
+  if (loading) return <div className="p-8 text-gray-500">Loading executions...</div>;
+  if (error) return <div className="p-8 text-red-500">Error: {error}</div>;
 
   return (
     <div>

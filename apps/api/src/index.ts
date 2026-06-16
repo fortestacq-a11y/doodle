@@ -20,9 +20,7 @@ const log = createLogger("api");
 
 async function bootstrap() {
   const app = Fastify({
-    logger: {
-      level: process.env.LOG_LEVEL ?? "info",
-    },
+    logger: { level: process.env.LOG_LEVEL ?? "info" },
   });
 
   await app.register(helmet, { contentSecurityPolicy: false });
@@ -30,8 +28,12 @@ async function bootstrap() {
     origin: [process.env.DASHBOARD_URL ?? "http://localhost:3000"],
     credentials: true,
   });
-  await app.register(rateLimit, { max: 100, timeWindow: "1 minute" });
-  await app.register(jwt, { secret: process.env.JWT_SECRET ?? "change-me-in-production" });
+  await app.register(rateLimit, {
+    max: 100,
+    timeWindow: "1 minute",
+    keyGenerator: (request) => request.workspaceId ?? request.ip ?? "unknown",
+  });
+  await app.register(jwt, { secret: process.env.JWT_SECRET! });
 
   registerConnectors();
 
@@ -40,6 +42,18 @@ async function bootstrap() {
   });
 
   app.addHook("preHandler", authMiddleware);
+
+  app.setErrorHandler((error, request, reply) => {
+    log.error({ err: error, correlationId: request.correlationId }, "Request error");
+    const statusCode = error.statusCode ?? 500;
+    reply.status(statusCode).send({
+      error: {
+        code: error.code ?? "INTERNAL_ERROR",
+        message: statusCode === 500 ? "Internal server error" : error.message,
+      },
+      correlationId: request.correlationId,
+    });
+  });
 
   await app.register(healthRoutes, { prefix: "/v1" });
   await app.register(workspaceRoutes, { prefix: "/v1/workspaces" });
@@ -54,8 +68,7 @@ async function bootstrap() {
   await app.listen({ port, host: "0.0.0.0" });
   log.info({ port }, "API server started");
 
-  const signals: NodeJS.Signals[] = ["SIGTERM", "SIGINT"];
-  for (const signal of signals) {
+  for (const signal of ["SIGTERM", "SIGINT"] as const) {
     process.on(signal, async () => {
       log.info({ signal }, "Shutting down gracefully");
       await app.close();

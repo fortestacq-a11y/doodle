@@ -12,7 +12,7 @@ export async function apiKeyRoutes(app: FastifyInstance) {
   });
 
   app.post<{ Body: { name: string } }>("/", async (request) => {
-    const rawKey = `nx_${crypto.randomBytes(32).toString("hex")}`;
+    const rawKey = `nx_live_${crypto.randomBytes(32).toString("hex")}`;
     const keyHash = crypto.createHash("sha256").update(rawKey).digest("hex");
 
     const key = await db.apiKey.create({

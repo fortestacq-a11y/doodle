@@ -12,13 +12,22 @@ interface Tool {
 
 export default function ToolsPage() {
   const [tools, setTools] = useState<Tool[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/tools")
-      .then((r) => r.json())
-      .then((data) => setTools(data.tools ?? []))
-      .catch(() => {});
+      .then((r) => {
+        if (!r.ok) throw new Error("Failed to load tools");
+        return r.json();
+      })
+      .then((data) => setTools(Array.isArray(data) ? data : []))
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
   }, []);
+
+  if (loading) return <div className="p-8 text-gray-500">Loading tools...</div>;
+  if (error) return <div className="p-8 text-red-500">Error: {error}</div>;
 
   return (
     <div>

@@ -13,12 +13,14 @@ export default function SettingsPage() {
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
   const [newKeyName, setNewKeyName] = useState("");
   const [createdKey, setCreatedKey] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch("/api/api-keys")
       .then((r) => r.json())
-      .then((data) => setApiKeys(data.keys ?? []))
-      .catch(() => {});
+      .then((data) => setApiKeys(Array.isArray(data) ? data : []))
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
   const createKey = async () => {
@@ -28,10 +30,12 @@ export default function SettingsPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name: newKeyName }),
     });
-    const data = await res.json();
-    setCreatedKey(data.key ?? "");
-    setNewKeyName("");
-    setApiKeys((prev) => [...prev, { id: data.id, name: data.name, lastUsedAt: null, createdAt: data.createdAt }]);
+    if (res.ok) {
+      const data = await res.json();
+      setCreatedKey(data.key ?? "");
+      setNewKeyName("");
+      setApiKeys((prev) => [...prev, { id: data.id, name: data.name, lastUsedAt: null, createdAt: data.createdAt }]);
+    }
   };
 
   const deleteKey = async (id: string) => {
@@ -62,7 +66,7 @@ export default function SettingsPage() {
 
         {createdKey && (
           <div className="mt-4 rounded-md border border-green-200 bg-green-50 p-4">
-            <p className="text-sm font-medium text-green-800">Your API key (shown once — copy it now):</p>
+            <p className="text-sm font-medium text-green-800">API key created. Copy it now — it won&apos;t be shown again:</p>
             <code className="mt-2 block break-all rounded bg-green-100 p-2 font-mono text-sm text-green-900">{createdKey}</code>
           </div>
         )}
@@ -74,7 +78,7 @@ export default function SettingsPage() {
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Name</th>
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Last Used</th>
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Created</th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"></th>
+                <th className="px-6 py-3" />
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 bg-white">
@@ -90,15 +94,7 @@ export default function SettingsPage() {
               ))}
             </tbody>
           </table>
-          {apiKeys.length === 0 && <div className="p-6 text-sm text-gray-500">No API keys yet.</div>}
-        </div>
-      </section>
-
-      <section className="mt-10">
-        <h2 className="text-lg font-semibold">MCP Configuration</h2>
-        <div className="mt-3 rounded-lg border bg-gray-50 p-4">
-          <p className="text-sm text-gray-600">Connect your AI agent to Nexus via MCP at:</p>
-          <code className="mt-2 block rounded bg-white border p-3 font-mono text-sm">POST http://localhost:3001/v1/mcp/tools/call</code>
+          {apiKeys.length === 0 && !loading && <div className="p-6 text-sm text-gray-500">No API keys yet.</div>}
         </div>
       </section>
     </div>

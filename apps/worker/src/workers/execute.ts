@@ -1,17 +1,9 @@
 import { db } from "@nexus/database";
 import { getTool } from "@nexus/tool-registry";
 import { createLogger } from "@nexus/logger";
+import type { ExecutionJob } from "../types/index.js";
 
 const log = createLogger("worker-execute");
-
-interface ExecutionJob {
-  toolCallId: string;
-  toolSlug: string;
-  input: Record<string, unknown>;
-  workspaceId: string;
-  connectionId: string;
-  accessToken: string;
-}
 
 export async function executeToolJob(job: ExecutionJob): Promise<unknown> {
   const { toolCallId, toolSlug, input, workspaceId, connectionId, accessToken } = job;

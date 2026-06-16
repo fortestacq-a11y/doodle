@@ -1,4 +1,4 @@
-export interface ExecutionJobData {
+export interface ExecutionJob {
   toolCallId: string;
   toolSlug: string;
   input: Record<string, unknown>;

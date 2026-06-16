@@ -8,24 +8,24 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
-    "fastify": "^4.28.0",
     "@fastify/cors": "^9.0.0",
-    "@fastify/helmet": "^13.0.0",
-    "@fastify/rate-limit": "^9.0.0",
+    "@fastify/helmet": "11.1.1",
     "@fastify/jwt": "^8.0.0",
-    "@nexus/shared": "workspace:*",
-    "@nexus/database": "workspace:*",
-    "@nexus/logger": "workspace:*",
+    "@fastify/rate-limit": "^9.0.0",
     "@nexus/connector-sdk": "workspace:*",
-    "@nexus/tool-registry": "workspace:*",
+    "@nexus/connectors": "workspace:*",
+    "@nexus/database": "workspace:*",
     "@nexus/execution-engine": "workspace:*",
+    "@nexus/logger": "workspace:*",
     "@nexus/mcp-runtime": "workspace:*",
     "@nexus/oauth": "workspace:*",
-    "@nexus/connectors": "workspace:*"
+    "@nexus/shared": "workspace:*",
+    "@nexus/tool-registry": "workspace:*",
+    "fastify": "^4.28.0"
   },
   "devDependencies": {
+    "@types/node": "^20.0.0",
     "tsx": "^4.15.0",
-    "typescript": "^5.4.0",
-    "@types/node": "^20.0.0"
+    "typescript": "^5.4.0"
   }
 }
