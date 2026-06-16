@@ -1,12 +1,7 @@
-import { gmailConnector } from "@nexus/connectors/gmail/manifest.js";
-import { githubConnector } from "@nexus/connectors/github/manifest.js";
-import { slackConnector } from "@nexus/connectors/slack/manifest.js";
-import { notionConnector } from "@nexus/connectors/notion/manifest.js";
-import { registerConnector } from "@nexus/tool-registry";
+import { discoverAndRegisterConnectors } from "@nexus/tool-registry";
+import { join } from "path";
 
-export function registerConnectors(): void {
-  registerConnector(gmailConnector);
-  registerConnector(githubConnector);
-  registerConnector(slackConnector);
-  registerConnector(notionConnector);
+export async function registerConnectors(): Promise<void> {
+  const connectorsDir = join(__dirname, "../../../connectors");
+  await discoverAndRegisterConnectors(connectorsDir);
 }
