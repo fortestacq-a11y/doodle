@@ -1,0 +1,28 @@
+{
+  "name": "nexus",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "pnpm@9.15.0",
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "db:generate": "pnpm --filter @nexus/database run generate",
+    "db:migrate": "pnpm --filter @nexus/database run migrate",
+    "db:seed": "pnpm --filter @nexus/database run seed",
+    "generate:connector": "tsx scripts/generate-connector.ts",
+    "setup": "tsx scripts/setup.ts",
+    "mcp": "pnpm --filter @nexus/api run mcp"
+  },
+  "devDependencies": {
+    "turbo": "^2.0.0",
+    "typescript": "^5.4.0",
+    "@types/node": "^20.0.0",
+    "prettier": "^3.2.0"
+  },
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=9"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "name": "@nexus/api",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "fastify": "^4.28.0",
+    "@fastify/cors": "^9.0.0",
+    "@fastify/rate-limit": "^9.0.0",
+    "@fastify/jwt": "^8.0.0",
+    "@nexus/shared": "workspace:*",
+    "@nexus/database": "workspace:*",
+    "@nexus/logger": "workspace:*",
+    "@nexus/connector-sdk": "workspace:*",
+    "@nexus/tool-registry": "workspace:*",
+    "@nexus/execution-engine": "workspace:*",
+    "@nexus/mcp-runtime": "workspace:*",
+    "@nexus/oauth": "workspace:*",
+    "@nexus/connectors": "workspace:*"
+  },
+  "devDependencies": {
+    "tsx": "^4.15.0",
+    "typescript": "^5.4.0",
+    "@types/node": "^20.0.0"
+  }
+}

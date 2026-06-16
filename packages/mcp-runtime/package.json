@@ -1,0 +1,23 @@
+{
+  "name": "@nexus/mcp-runtime",
+  "version": "1.0.0",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "@nexus/shared": "workspace:*",
+    "@nexus/connector-sdk": "workspace:*",
+    "@nexus/tool-registry": "workspace:*",
+    "@nexus/execution-engine": "workspace:*",
+    "@nexus/logger": "workspace:*",
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "@types/node": "^20.0.0"
+  }
+}
