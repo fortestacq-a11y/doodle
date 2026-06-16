@@ -1,5 +1,6 @@
 import type { FastifyRequest, FastifyReply } from "fastify";
 import crypto from "crypto";
+import { db } from "@nexus/database";
 
 const PUBLIC_PATHS = ["/v1/health", "/v1/oauth/callback"];
 
@@ -18,24 +19,21 @@ export async function authMiddleware(request: FastifyRequest, reply: FastifyRepl
     const token = authHeader.replace("Bearer ", "");
     const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
 
-    const db = await import("@nexus/database");
-    const key = await db.db.apiKey.findFirst({
+    const key = await db.apiKey.findFirst({
       where: { keyHash: tokenHash },
-      include: { workspace: true },
     });
 
     if (key) {
-      (request as any).workspaceId = key.workspaceId;
-      (request as any).authType = "api_key";
+      request.workspaceId = key.workspaceId;
+      request.authType = "api_key";
       return;
     }
 
-    const jwt = await import("@fastify/jwt");
-    const decoded = (request.server as any).jwt.verify(token);
+    const decoded = request.server.jwt.verify<{ workspaceId: string; userId: string }>(token);
     if (decoded?.workspaceId) {
-      (request as any).workspaceId = decoded.workspaceId;
-      (request as any).userId = decoded.userId;
-      (request as any).authType = "jwt";
+      request.workspaceId = decoded.workspaceId;
+      request.userId = decoded.userId;
+      request.authType = "jwt";
       return;
     }
 

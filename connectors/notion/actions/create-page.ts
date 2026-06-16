@@ -6,6 +6,15 @@ interface CreatePageInput {
   parentId?: string;
 }
 
+interface NotionPageResponse {
+  id: string;
+  url: string;
+}
+
+interface NotionSearchResponse {
+  results: Array<{ id: string }>;
+}
+
 export async function createPage(
   input: CreatePageInput,
   ctx: ActionContext
@@ -36,7 +45,7 @@ export async function createPage(
     throw new Error(`Notion create page failed: ${res.status} ${err}`);
   }
 
-  const data = (await res.json()) as any;
+  const data = (await res.json()) as NotionPageResponse;
   return { id: data.id, url: data.url };
 }
 
@@ -48,6 +57,6 @@ async function searchForDefaultParent(ctx: ActionContext): Promise<string | null
     },
   });
   if (!res.ok) return null;
-  const data = (await res.json()) as any;
+  const data = (await res.json()) as NotionSearchResponse;
   return data.results?.[0]?.id ?? null;
 }

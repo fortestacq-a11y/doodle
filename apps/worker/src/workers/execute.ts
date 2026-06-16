@@ -53,7 +53,7 @@ export async function executeToolJob(job: ExecutionJob): Promise<unknown> {
     });
 
     await db.toolCallOutput.create({
-      data: { toolCallId, payload: result as any },
+      data: { toolCallId, payload: result as never },
     });
 
     log.info({ toolCallId, durationMs }, "Execution succeeded");

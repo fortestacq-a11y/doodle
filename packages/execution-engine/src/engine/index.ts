@@ -57,7 +57,7 @@ export async function executeTool(
   });
 
   await db.toolCallInput.create({
-    data: { toolCallId: executionId, payload: input as any },
+    data: { toolCallId: executionId, payload: input as never },
   });
 
   let lastError: Error | undefined;
@@ -84,7 +84,7 @@ export async function executeTool(
       });
 
       await db.toolCallOutput.create({
-        data: { toolCallId: executionId, payload: result as any },
+        data: { toolCallId: executionId, payload: result as never },
       });
 
       log.info({ slug, executionId, durationMs }, "Tool execution succeeded");

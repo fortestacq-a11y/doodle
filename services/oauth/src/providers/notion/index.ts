@@ -1,5 +1,10 @@
 import type { OAuthProvider, TokenSet } from "../../types/index.js";
 
+interface NotionTokenResponse {
+  access_token: string;
+  token_type?: string;
+}
+
 const NOTION_CLIENT_ID = process.env.NOTION_CLIENT_ID ?? "";
 const NOTION_CLIENT_SECRET = process.env.NOTION_CLIENT_SECRET ?? "";
 
@@ -39,7 +44,7 @@ export const notionProvider: OAuthProvider = {
       }),
     });
     if (!res.ok) throw new Error(`Notion token exchange failed: ${res.status}`);
-    const data = await res.json() as any;
+    const data = (await res.json()) as NotionTokenResponse;
     return {
       accessToken: data.access_token,
       tokenType: data.token_type,

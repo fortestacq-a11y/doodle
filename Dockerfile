@@ -10,7 +10,17 @@ WORKDIR /app
 
 COPY package.json pnpm-workspace.yaml turbo.json tsconfig.base.json ./
 COPY apps/api/package.json apps/api/
-COPY packages/*/package.json packages/
+COPY packages/database/package.json packages/database/
+COPY packages/shared/package.json packages/shared/
+COPY packages/logger/package.json packages/logger/
+COPY packages/connector-sdk/package.json packages/connector-sdk/
+COPY packages/tool-registry/package.json packages/tool-registry/
+COPY packages/execution-engine/package.json packages/execution-engine/
+COPY packages/mcp-runtime/package.json packages/mcp-runtime/
+COPY packages/auth-sdk/package.json packages/auth-sdk/
+COPY services/oauth/package.json services/oauth/
+COPY services/connections/package.json services/connections/
+COPY connectors/package.json connectors/
 
 RUN pnpm install --frozen-lockfile
 
@@ -28,6 +38,7 @@ COPY --from=builder /app/apps/api/dist ./apps/api/dist
 COPY --from=builder /app/apps/api/package.json ./apps/api/
 COPY --from=builder /app/packages ./packages
 COPY --from=builder /app/connectors ./connectors
+COPY --from=builder /app/services ./services
 
 ENV NODE_ENV=production
 EXPOSE 3001
@@ -41,7 +52,7 @@ WORKDIR /app
 
 COPY package.json pnpm-workspace.yaml turbo.json ./
 COPY apps/dashboard/package.json apps/dashboard/
-COPY packages/*/package.json packages/
+COPY packages/shared/package.json packages/shared/
 
 RUN pnpm install --frozen-lockfile
 

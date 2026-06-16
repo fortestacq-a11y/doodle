@@ -3,9 +3,8 @@ import { db } from "@nexus/database";
 
 export async function executionRoutes(app: FastifyInstance) {
   app.get("/", async (request) => {
-    const workspaceId = (request as any).workspaceId;
     const executions = await db.toolCall.findMany({
-      where: { workspaceId },
+      where: { workspaceId: request.workspaceId },
       include: { tool: true },
       orderBy: { startedAt: "desc" },
       take: 50,
@@ -18,7 +17,9 @@ export async function executionRoutes(app: FastifyInstance) {
       where: { id: request.params.id },
       include: { tool: true, input: true, output: true, errors: true },
     });
-    if (!execution) return reply.status(404).send({ error: { code: "NOT_FOUND", message: "Execution not found" } });
+    if (!execution || execution.workspaceId !== request.workspaceId) {
+      return reply.status(404).send({ error: { code: "NOT_FOUND", message: "Execution not found" } });
+    }
     return execution;
   });
 }

@@ -1,3 +1,5 @@
+export * from "./encryption.js";
+
 export function generateId(): string {
   return crypto.randomUUID();
 }

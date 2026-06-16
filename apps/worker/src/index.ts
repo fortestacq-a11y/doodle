@@ -1,5 +1,4 @@
 import { Queue, Worker } from "bullmq";
-import IORedis from "ioredis";
 import { createLogger } from "@nexus/logger";
 import { registerConnector } from "@nexus/tool-registry";
 import { gmailConnector } from "@nexus/connectors/gmail/manifest.js";
@@ -10,9 +9,8 @@ import { executeToolJob } from "./workers/execute.js";
 
 const log = createLogger("worker");
 
-const connection = new IORedis(process.env.REDIS_URL ?? "redis://localhost:6379", {
-  maxRetriesPerRequest: null,
-}) as any;
+const redisUrl = process.env.REDIS_URL ?? "redis://localhost:6379";
+const connection = { host: new URL(redisUrl).hostname, port: Number(new URL(redisUrl).port) || 6379 };
 
 registerConnector(gmailConnector);
 registerConnector(githubConnector);
@@ -37,5 +35,13 @@ worker.on("completed", (job) => {
 worker.on("failed", (job, err) => {
   log.error({ jobId: job?.id, error: err.message }, "Job failed");
 });
+
+async function shutdown() {
+  log.info("Shutting down worker");
+  await worker.close();
+  process.exit(0);
+}
+process.on("SIGTERM", shutdown);
+process.on("SIGINT", shutdown);
 
 log.info("Worker started, listening for jobs");

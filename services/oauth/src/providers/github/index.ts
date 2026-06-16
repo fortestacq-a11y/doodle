@@ -1,5 +1,10 @@
 import type { OAuthProvider, TokenSet } from "../../types/index.js";
 
+interface GitHubTokenResponse {
+  access_token: string;
+  token_type?: string;
+}
+
 const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID ?? "";
 const GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET ?? "";
 
@@ -36,7 +41,7 @@ export const githubProvider: OAuthProvider = {
       }),
     });
     if (!res.ok) throw new Error(`GitHub token exchange failed: ${res.status}`);
-    const data = await res.json() as any;
+    const data = (await res.json()) as GitHubTokenResponse;
     return {
       accessToken: data.access_token,
       tokenType: data.token_type,

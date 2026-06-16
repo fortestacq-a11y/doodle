@@ -7,10 +7,15 @@ interface SendEmailInput {
   cc?: string;
 }
 
+interface GmailSendResponse {
+  id: string;
+  threadId: string;
+}
+
 export async function sendEmail(
   input: SendEmailInput,
   ctx: ActionContext
-): Promise<{ messageId: string; threadId: string }> {
+): Promise<GmailSendResponse> {
   const { to, subject, body, cc } = input;
 
   const messageParts = [
@@ -48,6 +53,6 @@ export async function sendEmail(
     throw new Error(`Gmail send failed: ${res.status} ${err}`);
   }
 
-  const data = (await res.json()) as { id: string; threadId: string };
-  return { messageId: data.id, threadId: data.threadId };
+  const data = (await res.json()) as GmailSendResponse;
+  return data;
 }

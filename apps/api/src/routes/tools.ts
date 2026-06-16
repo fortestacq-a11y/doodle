@@ -7,7 +7,7 @@ export async function toolRoutes(app: FastifyInstance) {
     const tools = await db.tool.findMany({
       include: { connector: true, versions: true },
     });
-    return tools.map((t: any) => ({
+    return tools.map((t) => ({
       name: t.slug,
       connector: t.connector.slug,
       description: t.description,
@@ -26,10 +26,9 @@ export async function toolRoutes(app: FastifyInstance) {
   });
 
   app.post<{ Body: { tool: string; arguments: Record<string, unknown> } }>("/execute", async (request, reply) => {
-    const workspaceId = (request as any).workspaceId;
     const { tool, arguments: args } = request.body;
     try {
-      const result = await executeTool(tool, args, workspaceId);
+      const result = await executeTool(tool, args, request.workspaceId);
       return result;
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error";

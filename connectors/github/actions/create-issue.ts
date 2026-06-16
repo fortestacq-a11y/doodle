@@ -7,10 +7,17 @@ interface CreateIssueInput {
   body?: string;
 }
 
+interface GitHubIssueResponse {
+  id: number;
+  number: number;
+  html_url: string;
+  title: string;
+}
+
 export async function createIssue(
   input: CreateIssueInput,
   ctx: ActionContext
-): Promise<{ id: number; number: number; htmlUrl: string; title: string }> {
+): Promise<GitHubIssueResponse> {
   const res = await fetch(
     `https://api.github.com/repos/${input.owner}/${input.repo}/issues`,
     {
@@ -29,11 +36,6 @@ export async function createIssue(
     throw new Error(`GitHub create issue failed: ${res.status} ${err}`);
   }
 
-  const data = (await res.json()) as any;
-  return {
-    id: data.id,
-    number: data.number,
-    htmlUrl: data.html_url,
-    title: data.title,
-  };
+  const data = (await res.json()) as GitHubIssueResponse;
+  return data;
 }

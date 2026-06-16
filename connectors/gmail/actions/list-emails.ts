@@ -14,6 +14,20 @@ interface EmailSummary {
   date: string;
 }
 
+interface GmailListResponse {
+  messages?: Array<{ id: string; threadId: string }>;
+}
+
+interface GmailMessageHeader {
+  name: string;
+  value: string;
+}
+
+interface GmailMessageResponse {
+  snippet: string;
+  payload?: { headers: GmailMessageHeader[] };
+}
+
 export async function listEmails(
   input: ListEmailsInput,
   ctx: ActionContext
@@ -28,7 +42,7 @@ export async function listEmails(
   );
 
   if (!listRes.ok) throw new Error(`Gmail list failed: ${listRes.status}`);
-  const listData = (await listRes.json()) as { messages?: Array<{ id: string; threadId: string }> };
+  const listData = (await listRes.json()) as GmailListResponse;
 
   if (!listData.messages) return [];
 
@@ -36,26 +50,15 @@ export async function listEmails(
     listData.messages.map(async (msg) => {
       const msgRes = await fetch(
         `https://gmail.googleapis.com/gmail/v1/users/me/messages/${msg.id}?format=metadata`,
-        {
-          headers: {
-            Authorization: `Bearer ${ctx.accessToken}`,
-          },
-        }
+        { headers: { Authorization: `Bearer ${ctx.accessToken}` } }
       );
       if (!msgRes.ok) return null;
-      const msgData = (await msgRes.json()) as any;
+      const msgData = (await msgRes.json()) as GmailMessageResponse;
       const headers = msgData.payload?.headers ?? [];
-      const subject = headers.find((h: any) => h.name === "Subject")?.value ?? "";
-      const from = headers.find((h: any) => h.name === "From")?.value ?? "";
-      const date = headers.find((h: any) => h.name === "Date")?.value ?? "";
-      return {
-        id: msg.id,
-        threadId: msg.threadId,
-        snippet: msgData.snippet ?? "",
-        subject,
-        from,
-        date,
-      };
+      const subject = headers.find((h) => h.name === "Subject")?.value ?? "";
+      const from = headers.find((h) => h.name === "From")?.value ?? "";
+      const date = headers.find((h) => h.name === "Date")?.value ?? "";
+      return { id: msg.id, threadId: msg.threadId, snippet: msgData.snippet ?? "", subject, from, date };
     })
   );
 

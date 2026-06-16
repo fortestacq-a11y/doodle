@@ -9,7 +9,6 @@
   },
   "dependencies": {
     "bullmq": "^5.7.0",
-    "ioredis": "5.11.1",
     "@nexus/shared": "workspace:*",
     "@nexus/database": "workspace:*",
     "@nexus/logger": "workspace:*",

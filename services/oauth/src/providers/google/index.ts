@@ -1,5 +1,12 @@
 import type { OAuthProvider, TokenSet } from "../../types/index.js";
 
+interface GoogleTokenResponse {
+  access_token: string;
+  refresh_token?: string;
+  expires_in?: number;
+  token_type?: string;
+}
+
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID ?? "";
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET ?? "";
 
@@ -41,7 +48,7 @@ export const googleProvider: OAuthProvider = {
       }),
     });
     if (!res.ok) throw new Error(`Google token exchange failed: ${res.status}`);
-    const data = await res.json() as any;
+    const data = (await res.json()) as GoogleTokenResponse;
     return {
       accessToken: data.access_token,
       refreshToken: data.refresh_token,
@@ -62,7 +69,7 @@ export const googleProvider: OAuthProvider = {
       }),
     });
     if (!res.ok) throw new Error(`Google token refresh failed: ${res.status}`);
-    const data = await res.json() as any;
+    const data = (await res.json()) as GoogleTokenResponse;
     return {
       accessToken: data.access_token,
       refreshToken: refreshToken,

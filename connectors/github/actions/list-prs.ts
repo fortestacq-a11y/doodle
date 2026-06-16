@@ -10,8 +10,8 @@ interface PrSummary {
   number: number;
   title: string;
   state: string;
-  htmlUrl: string;
-  createdAt: string;
+  html_url: string;
+  created_at: string;
 }
 
 export async function listPrs(
@@ -36,12 +36,5 @@ export async function listPrs(
     throw new Error(`GitHub list PRs failed: ${res.status} ${err}`);
   }
 
-  const data = (await res.json()) as any[];
-  return data.map((pr: any) => ({
-    number: pr.number,
-    title: pr.title,
-    state: pr.state,
-    htmlUrl: pr.html_url,
-    createdAt: pr.created_at,
-  }));
+  return (await res.json()) as PrSummary[];
 }

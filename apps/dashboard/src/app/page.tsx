@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 
+const WORKSPACE_ID = "5fcdc1f0-e232-4a7b-83a1-debf30c740c0";
+
 interface Stats {
   connections: number;
   tools: number;
@@ -21,20 +23,21 @@ export default function DashboardPage() {
   const [recent, setRecent] = useState<RecentExecution[]>([]);
 
   useEffect(() => {
+    const headers = { Authorization: "Bearer nexus_test_key_12345" };
     Promise.all([
-      fetch("/api/connections").then((r) => r.json()).catch(() => ({ connections: [] })),
-      fetch("/api/tools").then((r) => r.json()).catch(() => ({ tools: [] })),
-      fetch("/api/executions").then((r) => r.json()).catch(() => ({ executions: [] })),
+      fetch("/api/connections", { headers }).then((r) => r.json()).catch(() => []),
+      fetch("/api/tools", { headers }).then((r) => r.json()).catch(() => []),
+      fetch("/api/executions", { headers }).then((r) => r.json()).catch(() => []),
     ]).then(([connData, toolData, execData]) => {
-      const connections = connData.connections ?? [];
-      const tools = toolData.tools ?? [];
-      const executions = execData.executions ?? [];
+      const connections = Array.isArray(connData) ? connData : [];
+      const tools = Array.isArray(toolData) ? toolData : [];
+      const executions = Array.isArray(execData) ? execData : [];
       const today = new Date().toDateString();
       setStats({
         connections: connections.length,
         tools: tools.length,
         totalExecutions: executions.length,
-        executionsToday: executions.filter((e: any) => new Date(e.startedAt).toDateString() === today).length,
+        executionsToday: executions.filter((e: { startedAt: string }) => new Date(e.startedAt).toDateString() === today).length,
       });
       setRecent(executions.slice(0, 5));
     });
@@ -46,10 +49,10 @@ export default function DashboardPage() {
       <p className="mt-1 text-sm text-gray-500">Overview of your Nexus workspace.</p>
 
       <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard title="Connections" value={String(stats.connections)} color="bg-blue-50 text-blue-700" />
-        <StatCard title="Tools Available" value={String(stats.tools)} color="bg-purple-50 text-purple-700" />
-        <StatCard title="Executions Today" value={String(stats.executionsToday)} color="bg-green-50 text-green-700" />
-        <StatCard title="Total Executions" value={String(stats.totalExecutions)} color="bg-orange-50 text-orange-700" />
+        <StatCard title="Connections" value={String(stats.connections)} color="text-blue-600" />
+        <StatCard title="Tools Available" value={String(stats.tools)} color="text-purple-600" />
+        <StatCard title="Executions Today" value={String(stats.executionsToday)} color="text-green-600" />
+        <StatCard title="Total Executions" value={String(stats.totalExecutions)} color="text-orange-600" />
       </div>
 
       <div className="mt-8">
@@ -94,11 +97,8 @@ export default function DashboardPage() {
 function StatCard({ title, value, color }: { title: string; value: string; color: string }) {
   return (
     <div className="rounded-lg border bg-white p-6 shadow-sm">
-      <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-gray-500">{title}</span>
-        <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${color}`}>{value}</span>
-      </div>
-      <div className="mt-3 text-3xl font-bold">{value}</div>
+      <span className="text-sm font-medium text-gray-500">{title}</span>
+      <div className={`mt-3 text-3xl font-bold ${color}`}>{value}</div>
     </div>
   );
 }

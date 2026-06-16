@@ -5,6 +5,12 @@ interface SendMessageInput {
   text: string;
 }
 
+interface SlackMessageResponse {
+  ok: boolean;
+  ts: string;
+  channel: string;
+}
+
 export async function sendMessage(
   input: SendMessageInput,
   ctx: ActionContext
@@ -18,7 +24,7 @@ export async function sendMessage(
     body: JSON.stringify({ channel: input.channel, text: input.text }),
   });
 
-  const data = (await res.json()) as any;
-  if (!data.ok) throw new Error(`Slack send failed: ${data.error}`);
-  return { ok: true, ts: data.ts, channel: data.channel };
+  const data = (await res.json()) as SlackMessageResponse;
+  if (!data.ok) throw new Error("Slack send failed");
+  return data;
 }

@@ -2,6 +2,8 @@ import Fastify from "fastify";
 import cors from "@fastify/cors";
 import rateLimit from "@fastify/rate-limit";
 import jwt from "@fastify/jwt";
+import helmet from "@fastify/helmet";
+import crypto from "crypto";
 import { createLogger } from "@nexus/logger";
 import { registerConnectors } from "./plugins/connectors.js";
 import { authMiddleware } from "./middlewares/auth.js";
@@ -23,11 +25,19 @@ async function bootstrap() {
     },
   });
 
-  await app.register(cors, { origin: true });
+  await app.register(helmet, { contentSecurityPolicy: false });
+  await app.register(cors, {
+    origin: [process.env.DASHBOARD_URL ?? "http://localhost:3000"],
+    credentials: true,
+  });
   await app.register(rateLimit, { max: 100, timeWindow: "1 minute" });
-  await app.register(jwt, { secret: process.env.JWT_SECRET ?? "dev-secret" });
+  await app.register(jwt, { secret: process.env.JWT_SECRET ?? "change-me-in-production" });
 
   registerConnectors();
+
+  app.addHook("onRequest", async (request) => {
+    request.correlationId = (request.headers["x-correlation-id"] as string) ?? crypto.randomUUID();
+  });
 
   app.addHook("preHandler", authMiddleware);
 
@@ -43,6 +53,15 @@ async function bootstrap() {
   const port = Number(process.env.PORT ?? 3001);
   await app.listen({ port, host: "0.0.0.0" });
   log.info({ port }, "API server started");
+
+  const signals: NodeJS.Signals[] = ["SIGTERM", "SIGINT"];
+  for (const signal of signals) {
+    process.on(signal, async () => {
+      log.info({ signal }, "Shutting down gracefully");
+      await app.close();
+      process.exit(0);
+    });
+  }
 }
 
 bootstrap().catch((err) => {

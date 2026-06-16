@@ -1,5 +1,11 @@
 import type { OAuthProvider, TokenSet } from "../../types/index.js";
 
+interface SlackTokenResponse {
+  ok: boolean;
+  access_token: string;
+  token_type?: string;
+}
+
 const SLACK_CLIENT_ID = process.env.SLACK_CLIENT_ID ?? "";
 const SLACK_CLIENT_SECRET = process.env.SLACK_CLIENT_SECRET ?? "";
 
@@ -33,8 +39,8 @@ export const slackProvider: OAuthProvider = {
       }),
     });
     if (!res.ok) throw new Error(`Slack token exchange failed: ${res.status}`);
-    const data = await res.json() as any;
-    if (!data.ok) throw new Error(data.error);
+    const data = (await res.json()) as SlackTokenResponse;
+    if (!data.ok) throw new Error("Slack OAuth failed");
     return {
       accessToken: data.access_token,
       tokenType: data.token_type,

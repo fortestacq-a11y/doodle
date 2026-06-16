@@ -26,7 +26,7 @@ export function registerConnector(connector: ConnectorDefinition): void {
       category: action.category,
       connectorSlug: connector.slug,
       version: connector.version,
-      inputSchema: (action.inputSchema as any)._def ?? {},
+      inputSchema: (action.inputSchema._def as Record<string, unknown>) ?? {},
       action,
     };
     registry.set(action.slug, tool);
