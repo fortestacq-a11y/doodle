@@ -1,0 +1,366 @@
+\# Entity Relationship Diagram (ERD)
+
+
+
+\## Purpose
+
+
+
+Defines all major database entities and their relationships.
+
+
+
+\---
+
+
+
+\# High-Level ERD
+
+
+
+```text
+
+┌──────────────┐
+
+│ users        │
+
+└──────┬───────┘
+
+&#x20;      │
+
+&#x20;      ▼
+
+┌──────────────┐
+
+│ workspaces   │
+
+└──────┬───────┘
+
+&#x20;      │
+
+&#x20;      ├──────────────────┐
+
+&#x20;      │                  │
+
+&#x20;      ▼                  ▼
+
+
+
+┌──────────────┐    ┌──────────────┐
+
+│ api\_keys     │    │ connections  │
+
+└──────────────┘    └──────┬───────┘
+
+&#x20;                           │
+
+&#x20;                           ▼
+
+
+
+&#x20;                   ┌──────────────┐
+
+&#x20;                   │ oauth\_tokens │
+
+&#x20;                   └──────────────┘
+
+
+
+
+
+┌──────────────┐
+
+│ connectors   │
+
+└──────┬───────┘
+
+&#x20;      │
+
+&#x20;      ▼
+
+
+
+┌──────────────┐
+
+│ tools        │
+
+└──────┬───────┘
+
+&#x20;      │
+
+&#x20;      ▼
+
+
+
+┌──────────────┐
+
+│ tool\_versions│
+
+└──────────────┘
+
+
+
+
+
+workspaces
+
+&#x20;    │
+
+&#x20;    ▼
+
+
+
+┌──────────────┐
+
+│ tool\_calls   │
+
+└──────┬───────┘
+
+&#x20;      │
+
+&#x20;      ├──────────────┐
+
+&#x20;      │              │
+
+&#x20;      ▼              ▼
+
+
+
+┌──────────────┐  ┌──────────────┐
+
+│ call\_inputs  │  │ call\_outputs │
+
+└──────────────┘  └──────────────┘
+
+
+
+&#x20;      │
+
+&#x20;      ▼
+
+
+
+┌──────────────┐
+
+│ errors       │
+
+└──────────────┘
+
+
+
+
+
+workspaces
+
+&#x20;     │
+
+&#x20;     ▼
+
+
+
+┌──────────────┐
+
+│ workflows    │
+
+└──────┬───────┘
+
+&#x20;      │
+
+&#x20;      ▼
+
+
+
+┌──────────────┐
+
+│ workflow\_runs│
+
+└──────────────┘
+
+
+
+
+
+workspaces
+
+&#x20;     │
+
+&#x20;     ▼
+
+
+
+┌──────────────┐
+
+│ agents       │
+
+└──────┬───────┘
+
+&#x20;      │
+
+&#x20;      ▼
+
+
+
+┌──────────────┐
+
+│ agent\_runs   │
+
+└──────────────┘
+
+```
+
+
+
+\---
+
+
+
+\# Workspace Boundary
+
+
+
+Every record belongs to a workspace.
+
+
+
+```text
+
+Workspace
+
+&#x20;│
+
+&#x20;├── Connections
+
+&#x20;├── API Keys
+
+&#x20;├── Tool Calls
+
+&#x20;├── Workflows
+
+&#x20;├── Agents
+
+&#x20;└── Audit Logs
+
+```
+
+
+
+No data may cross workspace boundaries.
+
+
+
+\---
+
+
+
+\# OAuth Relationship
+
+
+
+```text
+
+Workspace
+
+
+
+&#x20;↓
+
+
+
+Connection
+
+
+
+&#x20;↓
+
+
+
+OAuth Token
+
+```
+
+
+
+Example:
+
+
+
+```text
+
+Workspace
+
+&#x20;  ↓
+
+&#x20;Gmail Connection
+
+&#x20;  ↓
+
+&#x20;Gmail OAuth Token
+
+```
+
+
+
+\---
+
+
+
+\# Tool Relationship
+
+
+
+```text
+
+Connector
+
+
+
+&#x20;↓
+
+
+
+Tool
+
+
+
+&#x20;↓
+
+
+
+Tool Version
+
+```
+
+
+
+Example:
+
+
+
+```text
+
+gmail
+
+
+
+&#x20;↓
+
+
+
+gmail\_send\_email
+
+
+
+&#x20;↓
+
+
+
+1.0.0
+
+1.1.0
+
+2.0.0
+
+```
+
+
+

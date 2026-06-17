@@ -1,0 +1,5 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": { "rootDir": ".", "outDir": "dist" },
+  "include": ["./*.ts", "./gmail/**/*.ts", "./github/**/*.ts", "./slack/**/*.ts", "./notion/**/*.ts"]
+}

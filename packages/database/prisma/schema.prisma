@@ -1,0 +1,299 @@
+// This is your Prisma schema file
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Users ───────────────────────────────────────────────────────────────────
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String
+  imageUrl  String?  @map("image_url")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  workspaces        Workspace[]
+  workspaceMemberships WorkspaceMember[]
+  sessions          Session[]
+
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+// ─── Workspaces ───────────────────────────────────────────────────────────────
+
+model Workspace {
+  id        String   @id @default(uuid())
+  name      String
+  ownerId   String   @map("owner_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  owner       User              @relation(fields: [ownerId], references: [id])
+  members     WorkspaceMember[]
+  apiKeys     ApiKey[]
+  connections Connection[]
+  toolCalls   ToolCall[]
+  workflows   Workflow[]
+  agents      Agent[]
+  auditLogs   AuditLog[]
+
+  @@map("workspaces")
+}
+
+model WorkspaceMember {
+  id          String   @id @default(uuid())
+  workspaceId String   @map("workspace_id")
+  userId      String   @map("user_id")
+  role        String   @default("member")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, userId])
+  @@map("workspace_members")
+}
+
+// ─── API Keys ─────────────────────────────────────────────────────────────────
+
+model ApiKey {
+  id          String    @id @default(uuid())
+  workspaceId String    @map("workspace_id")
+  name        String
+  keyHash     String    @map("key_hash")
+  lastUsedAt  DateTime? @map("last_used_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@map("api_keys")
+}
+
+// ─── Connectors ───────────────────────────────────────────────────────────────
+
+model Connector {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  version   String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  connections Connection[]
+  tools       Tool[]
+
+  @@map("connectors")
+}
+
+// ─── Connections ──────────────────────────────────────────────────────────────
+
+model Connection {
+  id          String   @id @default(uuid())
+  workspaceId String   @map("workspace_id")
+  connectorId String   @map("connector_id")
+  status      String   @default("connected")
+  connectedAt DateTime @default(now()) @map("connected_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  workspace  Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  connector  Connector   @relation(fields: [connectorId], references: [id])
+  oauthToken OAuthToken?
+
+  @@unique([workspaceId, connectorId])
+  @@index([workspaceId])
+  @@index([status])
+  @@map("connections")
+}
+
+model OAuthToken {
+  id           String   @id @default(uuid())
+  connectionId String   @unique @map("connection_id")
+  accessToken  String   @map("access_token")
+  refreshToken String?  @map("refresh_token")
+  expiresAt    DateTime? @map("expires_at")
+  tokenType    String   @default("Bearer") @map("token_type")
+  scopes       String?
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  connection Connection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+
+  @@map("oauth_tokens")
+}
+
+// ─── Tools ────────────────────────────────────────────────────────────────────
+
+model Tool {
+  id          String   @id @default(uuid())
+  connectorId String   @map("connector_id")
+  name        String
+  slug        String   @unique
+  description String
+  category    String
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  connector Connector     @relation(fields: [connectorId], references: [id])
+  versions  ToolVersion[]
+  toolCalls ToolCall[]
+
+  @@index([connectorId])
+  @@map("tools")
+}
+
+model ToolVersion {
+  id        String   @id @default(uuid())
+  toolId    String   @map("tool_id")
+  version   String
+  schema    Json
+  createdAt DateTime @default(now()) @map("created_at")
+
+  tool Tool @relation(fields: [toolId], references: [id], onDelete: Cascade)
+
+  @@unique([toolId, version])
+  @@map("tool_versions")
+}
+
+// ─── Tool Calls ───────────────────────────────────────────────────────────────
+
+model ToolCall {
+  id          String    @id @default(uuid())
+  workspaceId String    @map("workspace_id")
+  toolId      String    @map("tool_id")
+  status      String    @default("queued")
+  durationMs  Int?      @map("duration_ms")
+  startedAt   DateTime  @default(now()) @map("started_at")
+  completedAt DateTime? @map("completed_at")
+
+  workspace  Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  tool       Tool             @relation(fields: [toolId], references: [id])
+  input      ToolCallInput?
+  output     ToolCallOutput?
+  errors     ExecutionError[]
+
+  @@index([workspaceId])
+  @@index([toolId])
+  @@index([status])
+  @@index([startedAt])
+  @@map("tool_calls")
+}
+
+model ToolCallInput {
+  id         String @id @default(uuid())
+  toolCallId String @unique @map("tool_call_id")
+  payload    Json
+
+  toolCall ToolCall @relation(fields: [toolCallId], references: [id], onDelete: Cascade)
+
+  @@map("tool_call_inputs")
+}
+
+model ToolCallOutput {
+  id         String @id @default(uuid())
+  toolCallId String @unique @map("tool_call_id")
+  payload    Json
+
+  toolCall ToolCall @relation(fields: [toolCallId], references: [id], onDelete: Cascade)
+
+  @@map("tool_call_outputs")
+}
+
+model ExecutionError {
+  id           String   @id @default(uuid())
+  toolCallId   String   @map("tool_call_id")
+  errorCode    String   @map("error_code")
+  errorMessage String   @map("error_message")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  toolCall ToolCall @relation(fields: [toolCallId], references: [id], onDelete: Cascade)
+
+  @@map("execution_errors")
+}
+
+// ─── Workflows ────────────────────────────────────────────────────────────────
+
+model Workflow {
+  id          String   @id @default(uuid())
+  workspaceId String   @map("workspace_id")
+  name        String
+  definition  Json
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  workspace Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  runs      WorkflowRun[]
+
+  @@map("workflows")
+}
+
+model WorkflowRun {
+  id          String    @id @default(uuid())
+  workflowId  String    @map("workflow_id")
+  status      String    @default("queued")
+  startedAt   DateTime  @default(now()) @map("started_at")
+  completedAt DateTime? @map("completed_at")
+
+  workflow Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@map("workflow_runs")
+}
+
+// ─── Agents (future) ─────────────────────────────────────────────────────────
+
+model Agent {
+  id          String   @id @default(uuid())
+  workspaceId String   @map("workspace_id")
+  name        String
+  type        String
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  workspace Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  runs      AgentRun[]
+
+  @@map("agents")
+}
+
+model AgentRun {
+  id          String    @id @default(uuid())
+  agentId     String    @map("agent_id")
+  status      String    @default("queued")
+  startedAt   DateTime  @default(now()) @map("started_at")
+  completedAt DateTime? @map("completed_at")
+
+  agent Agent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@map("agent_runs")
+}
+
+// ─── Audit Logs ───────────────────────────────────────────────────────────────
+
+model AuditLog {
+  id           String   @id @default(uuid())
+  workspaceId  String   @map("workspace_id")
+  actorId      String   @map("actor_id")
+  action       String
+  resourceType String   @map("resource_type")
+  resourceId   String?  @map("resource_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
